@@ -1,0 +1,241 @@
+CREATE DATABASE PRJ301_E1_BL5_SP25;
+USE PRJ301_E1_BL5_SP25;
+-- 1. Bảng Admins
+CREATE TABLE admins (
+    id INT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL
+);
+
+-- 2. Bảng Customers
+CREATE TABLE customers (
+    id INT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    phone VARCHAR(20),
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    address TEXT
+);
+
+-- 3. Bảng Categories
+CREATE TABLE categories (
+    id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    description TEXT
+);
+
+-- 4. Bảng Brands
+CREATE TABLE brands (
+    id INT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL
+);
+
+-- 5. Bảng Products
+CREATE TABLE products (
+    id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    categoryId INT,
+    brandId INT,
+    size VARCHAR(10),
+    color VARCHAR(30),
+    price Float NOT NULL,
+    stock INT DEFAULT 0,
+    description TEXT,
+    imageUrl VARCHAR(255),
+    FOREIGN KEY (categoryId) REFERENCES categories(id),
+    FOREIGN KEY (brandId) REFERENCES brands(id)
+);
+
+-- 6. Bảng Orders
+CREATE TABLE orders (
+    id INT PRIMARY KEY,
+    customerId INT,
+    orderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'pending',
+    totalAmount DECIMAL(10,2),
+    FOREIGN KEY (customerId) REFERENCES customers(id)
+);
+
+-- 7. Bảng OrderItems
+CREATE TABLE orderItems (
+    id INT PRIMARY KEY,
+    orderId INT,
+    productId INT,
+    quantity INT,
+    price DECIMAL(10,2),
+    FOREIGN KEY (orderId) REFERENCES orders(id),
+    FOREIGN KEY (productId) REFERENCES products(id)
+);
+
+-- 8. Bảng Payments
+CREATE TABLE payments (
+    id INT PRIMARY KEY,
+    orderId INT,
+    paymentDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    method VARCHAR(50),
+    status VARCHAR(20),
+    FOREIGN KEY (orderId) REFERENCES orders(id)
+);
+
+-- 9. Bảng Vouchers (Cập nhật khóa ngoại adminId)
+CREATE TABLE vouchers (
+    id INT PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
+    discount DECIMAL(5,2) NOT NULL,
+    startDate DATE,
+    endDate DATE,
+    quantity INT DEFAULT 0,
+    adminId INT,  -- Khóa ngoại đến bảng admins
+    FOREIGN KEY (adminId) REFERENCES admins(id)
+);
+
+-- 10. Bảng ProductReviews
+CREATE TABLE productReviews (
+    id INT PRIMARY KEY,
+    customerId INT,
+    productId INT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    reviewDate DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customerId) REFERENCES customers(id),
+    FOREIGN KEY (productId) REFERENCES products(id)
+);
+
+-- 11. Bảng PasswordResetOtps
+CREATE TABLE passwordResetOtps (
+    id INT PRIMARY KEY,
+    customerId INT NOT NULL,
+    otpCode VARCHAR(10) NOT NULL,
+    expiresAt DATETIME NOT NULL,
+    FOREIGN KEY (customerId) REFERENCES customers(id)
+);
+
+
+
+INSERT INTO admins (id, username, password, email) 
+VALUES 
+(1, 'admin1', 'admin@123', 'admin1@example.com'),
+(2, 'admin2', 'securepass', 'admin2@example.com');
+
+INSERT INTO customers (id, username, phone, email, password, address)
+VALUES 
+(1, 'john_doe', '0123456789', 'john@example.com', 'john123', '123 Main St, Hanoi'),
+(2, 'jane_smith', '0987654321', 'jane@example.com', 'jane456', '456 Elm St, Ho Chi Minh City');
+
+INSERT INTO categories (id, name, description)
+VALUES
+(1, 'T-Shirts', 'Various styles of t-shirts'),
+(2, 'Jeans', 'Denim jeans for all genders'),
+(3, 'Shoes', 'Footwear including sneakers, boots'),
+(4, 'Hats', 'Headwear for style or sun protection'),
+(5, 'Jackets', 'Outerwear for cold weather'),
+(6, 'Socks', 'Comfortable and durable socks'),
+(7, 'Shorts', 'Casual and athletic shorts'),
+(8, 'Shirts', 'Formal and casual shirts'),
+(9, 'Dresses', 'Variety of dresses for women'),
+(10, 'Skirts', 'Different styles of skirts'),
+(11, 'Sweaters', 'Warm knitwear and pullovers'),
+(12, 'Belts', 'Leather and fabric belts'),
+(13, 'Gloves', 'Winter and work gloves'),
+(14, 'Scarves', 'Scarves for fashion or warmth'),
+(15, 'Swimwear', 'Swimsuits and trunks'),
+(16, 'Sunglasses', 'Eyewear for UV protection'),
+(17, 'Backpacks', 'Fashion and school backpacks'),
+(18, 'Watches', 'Analog and digital watches'),
+(19, 'Underwear', 'Innerwear for men and women'),
+(20, 'Accessories', 'General fashion accessories');
+
+INSERT INTO brands (id, name)
+VALUES
+(1, 'Nike'),
+(2, 'Adidas'),
+(3, 'Puma'),
+(4, 'Reebok'),
+(5, 'Under Armour');
+
+INSERT INTO products (id, name, categoryId, brandId, size, color, price, stock, description, imageUrl)
+VALUES
+(1, 'Nike Air Max', 3, 1, '42', 'Black', 120.00, 50, 'Comfortable running shoes', 'https://example.com/images/nike_air_max.jpg'),
+(2, 'Adidas Ultraboost', 3, 2, '41', 'White', 180.00, 30, 'High-performance running shoes', 'https://example.com/images/adidas_ultraboost.jpg'),
+(3, 'Puma Suede Classic', 3, 3, '43', 'Blue', 75.00, 20, 'Stylish suede sneakers', 'https://example.com/images/puma_suede.jpg'),
+(4, 'Reebok Classic Leather', 3, 4, '44', 'Red', 85.00, 25, 'Vintage style leather sneakers', 'https://example.com/images/reebok_classic.jpg'),
+(5, 'Under Armour HOVR Phantom', 3, 5, '45', 'Grey', 130.00, 40, 'Running shoes with cushioning technology', 'https://example.com/images/under_armour_hovr.jpg'),
+(6, 'Nike Hoodie', 1, 1, 'M', 'Grey', 50.00, 100, 'Comfortable hoodie for casual wear', 'https://example.com/images/nike_hoodie.jpg'),
+(7, 'Adidas T-Shirt', 1, 2, 'L', 'Black', 25.00, 150, 'Soft cotton t-shirt', 'https://example.com/images/adidas_tshirt.jpg'),
+(8, 'Puma Tracksuit', 1, 3, 'L', 'Green', 65.00, 80, 'Stylish tracksuit for sports', 'https://example.com/images/puma_tracksuit.jpg'),
+(9, 'Reebok Sweatshirt', 1, 4, 'M', 'White', 45.00, 60, 'Casual sweatshirt for comfort', 'https://example.com/images/reebok_sweatshirt.jpg'),
+(10, 'Under Armour Compression Shirt', 1, 5, 'S', 'Black', 40.00, 90, 'Compression fit for workout', 'https://example.com/images/under_armour_compression.jpg'),
+(11, 'Nike Running Shorts', 7, 1, 'M', 'Black', 40.00, 200, 'Running shorts for outdoor activities', 'https://example.com/images/nike_shorts.jpg'),
+(12, 'Adidas Swim Shorts', 7, 2, 'L', 'Blue', 35.00, 150, 'Swim shorts for beach or pool', 'https://example.com/images/adidas_swim.jpg'),
+(13, 'Puma Sports Socks', 6, 3, 'M', 'White', 10.00, 500, 'Comfortable sports socks', 'https://example.com/images/puma_socks.jpg'),
+(14, 'Reebok Gym Bag', 17, 4, 'One Size', 'Black', 30.00, 70, 'Durable gym bag for workouts', 'https://example.com/images/reebok_bag.jpg'),
+(15, 'Under Armour Water Bottle', 17, 5, '500ml', 'Silver', 15.00, 200, 'Water bottle for hydration', 'https://example.com/images/under_armour_bottle.jpg'),
+(16, 'Nike Sports Watch', 18, 1, 'One Size', 'Black', 150.00, 60, 'Advanced sports watch with fitness tracking', 'https://example.com/images/nike_watch.jpg'),
+(17, 'Adidas Sunglasses', 16, 2, 'One Size', 'Grey', 80.00, 100, 'Stylish sunglasses for outdoor use', 'https://example.com/images/adidas_sunglasses.jpg'),
+(18, 'Puma Backpack', 17, 3, 'One Size', 'Black', 40.00, 150, 'Spacious backpack for daily use', 'https://example.com/images/puma_backpack.jpg'),
+(19, 'Reebok Training Shoes', 3, 4, '42', 'Red', 95.00, 50, 'Training shoes for indoor and outdoor workouts', 'https://example.com/images/reebok_training.jpg'),
+(20, 'Under Armour Sports Pants', 7, 5, 'L', 'Grey', 60.00, 120, 'Sports pants for comfort during exercise', 'https://example.com/images/under_armour_pants.jpg');
+
+INSERT INTO orders (id, customerId, orderDate, status, totalAmount)
+VALUES
+(1, 1, '2025-04-01 10:30:00', 'completed', 240.00),
+(2, 2, '2025-04-02 14:20:00', 'pending', 155.00),
+(3, 1, '2025-04-03 09:15:00', 'shipped', 170.00),
+(4, 2, '2025-04-04 16:45:00', 'processing', 180.00),
+(5, 1, '2025-04-05 11:00:00', 'cancelled', 75.00),
+(6, 2, '2025-04-06 13:50:00', 'completed', 120.00),
+(7, 1, '2025-04-07 08:30:00', 'pending', 95.00),
+(8, 2, '2025-04-08 19:00:00', 'processing', 210.00);
+
+INSERT INTO orderItems (id, orderId, productId, quantity, price)
+VALUES
+(1, 1, 1, 2, 120.00),      
+(2, 2, 5, 1, 155.00),      
+(3, 3, 7, 1, 90.00),      
+(4, 3, 8, 2, 40.00),      
+(5, 4, 10, 2, 90.00),     
+(6, 5, 11, 1, 75.00),     
+(7, 6, 13, 2, 60.00),     
+(8, 7, 3, 1, 95.00),      
+(9, 8, 6, 1, 105.00),   
+(10, 8, 14, 1, 105.00); 
+
+
+INSERT INTO payments (id, orderId, paymentDate, method, status)
+VALUES
+(1, 1, '2025-04-01 11:00:00', 'VNPAY', 'success'),
+(2, 2, '2025-04-02 15:00:00', 'VNPAY', 'pending'),
+(3, 3, '2025-04-03 10:00:00', 'VNPAY', 'success'),
+(4, 4, '2025-04-04 17:00:00', 'VNPAY', 'success'),
+(5, 5, '2025-04-05 11:30:00', 'VNPAY', 'failed'),
+(6, 6, '2025-04-06 14:00:00', 'VNPAY', 'success'),
+(7, 7, '2025-04-07 09:00:00', 'VNPAY', 'pending'),
+(8, 8, '2025-04-08 19:30:00', 'VNPAY', 'success');
+
+INSERT INTO vouchers (id, code, description, discount, startDate, endDate, quantity, adminId, customerId)
+VALUES
+(1, 'VOUCHER001', 'Giảm giá 10% cho đơn hàng trên 500.000 VND', 10.00, '2025-04-01', '2025-04-30', 100, 1, 1),
+(2, 'VOUCHER002', 'Giảm giá 20% cho lần mua đầu tiên', 20.00, '2025-04-05', '2025-04-30', 50, 2, 2),
+(3, 'VOUCHER003', 'Giảm giá 5% cho mọi đơn hàng', 5.00, '2025-04-01', '2025-04-15', 200, 1, 1),
+(4, 'VOUCHER004', 'Giảm giá 15% cho khách hàng thân thiết', 15.00, '2025-04-10', '2025-04-20', 150, 3, 2),
+(5, 'VOUCHER005', 'Giảm giá 30% cho đơn hàng trên 1.000.000 VND', 30.00, '2025-04-01', '2025-04-30', 50, 2, 1);
+
+INSERT INTO productReviews (id, customerId, productId, rating, comment, reviewDate)
+VALUES
+(1, 1, 1, 5, 'Sản phẩm tuyệt vời, chất lượng tốt', '2025-04-01 12:00:00'),
+(2, 2, 5, 4, 'Sản phẩm đẹp, nhưng màu không như tôi mong muốn', '2025-04-02 14:30:00'),
+(3, 1, 7, 3, 'Chất lượng ổn, nhưng giao hàng chậm', '2025-04-03 10:00:00'),
+(4, 2, 8, 5, 'Rất hài lòng với sản phẩm, sẽ mua thêm', '2025-04-04 16:15:00'),
+(5, 1, 10, 2, 'Sản phẩm không như mong đợi, không vừa với kích thước tôi cần', '2025-04-05 13:45:00');
+
+INSERT INTO passwordResetOtps (id, customerId, otpCode, expiresAt)
+VALUES
+(1, 1, 'ABC123', '2025-04-02 12:00:00'),
+(2, 2, 'XYZ456', '2025-04-03 14:30:00'),
+(3, 1, 'LMN789', '2025-04-04 16:45:00'),
+(4, 1, 'DEF234', '2025-04-05 09:15:00'),
+(5, 2, 'GHI567', '2025-04-06 10:00:00');
+
+
